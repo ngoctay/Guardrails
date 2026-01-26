@@ -2,19 +2,22 @@
   "name": "guardrails-github-app",
   "version": "1.0.0",
   "private": true,
-  "description": "An AI guardrails to review PRs",
+  "description": "Enterprise guardrails for GitHub Copilot PRs",
   "author": "0210-ai",
   "license": "ISC",
   "homepage": "https://github.com//",
   "keywords": [
     "probot",
     "github",
-    "probot-app"
+    "probot-app",
+    "security",
+    "guardrails"
   ],
   "scripts": {
     "build": "tsc",
     "start": "probot run ./lib/index.js",
-    "test": "vitest"
+    "test": "vitest",
+    "dev": "tsc && node ./lib/index.js"
   },
   "dependencies": {
     "probot": "^13.4.5"

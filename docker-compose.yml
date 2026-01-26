@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    volumes:
+      - ./backend:/app
+    command: python main.py
+
+  # GitHub App runs separately via Probot
+  # See guardrails-github-app/README.md for setup
