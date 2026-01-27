@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 
 class AIReviewer:
-    """AI-assisted code review engine using Google Gemini."""
+    """AI-assisted code review engine using Google Gemini (Gen AI SDK v1)."""
 
     def __init__(self):
-        """Initialize Gemini AI reviewer."""
+        """Initialize Google Gen AI Client."""
         self.api_key = os.getenv("GOOGLE_API_KEY")
         self.use_ai = self.api_key is not None
         
@@ -89,6 +89,7 @@ BEST_PRACTICES:
                 else:
                     raise
             
+            # Access text directly from the response object
             return self._parse_ai_response(response.text)
 
         except Exception as e:
@@ -101,6 +102,9 @@ BEST_PRACTICES:
 
     def _parse_ai_response(self, response_text: str) -> Tuple[str, str]:
         """Parse Gemini response into components."""
+        if not response_text:
+            return "", "AI generation returned empty response."
+
         suggested_code = ""
         explanation = ""
 
@@ -178,7 +182,7 @@ Provide your analysis in 2-3 sentences.
                 "Incomplete AI-generated code can cause runtime errors. Always implement full logic.",
             ),
             "IP-001": (
-                "# Properly attribute source code\n# Source: https://github.com/owner/repo\n# License: MIT",
+                "# Properly attribute source code\n# Source: [https://github.com/owner/repo](https://github.com/owner/repo)\n# License: MIT",
                 "Always include proper attribution and verify license compatibility when using external code.",
             ),
         }
@@ -188,7 +192,7 @@ Provide your analysis in 2-3 sentences.
     def generate_explanation(self, violation: Violation) -> str:
         """Generate a developer-friendly explanation for a violation."""
         explanations = {
-            "SEC-001": "Hardcoded credentials can be exposed in version control. Store secrets in environment variables or secret management systems.",
+            "SEC-001": "Hardcoded credentials can be exposed in version control. Store secrets in environment variables.",
             "SEC-002": "SQL injection allows attackers to manipulate database queries. Always use parameterized queries.",
             "SEC-003": "Unsafe deserialization can lead to remote code execution. Use safe alternatives like json.loads().",
             "SEC-004": "eval() and exec() execute arbitrary code. Avoid them in production.",
@@ -207,11 +211,11 @@ Provide your analysis in 2-3 sentences.
     def suggest_category_link(self, violation: Violation) -> Optional[str]:
         """Suggest documentation link for a violation category."""
         links = {
-            "SEC": "https://owasp.org/Top10/",
-            "CWE": "https://cwe.mitre.org/",
-            "PERF": "https://docs.python.org/3/library/profile.html",
-            "AI": "https://github.com/github/copilot-safety",
-            "IP": "https://opensource.org/licenses/",
+            "SEC": "[https://owasp.org/Top10/](https://owasp.org/Top10/)",
+            "CWE": "[https://cwe.mitre.org/](https://cwe.mitre.org/)",
+            "PERF": "[https://docs.python.org/3/library/profile.html](https://docs.python.org/3/library/profile.html)",
+            "AI": "[https://github.com/github/copilot-safety](https://github.com/github/copilot-safety)",
+            "IP": "[https://opensource.org/licenses/](https://opensource.org/licenses/)",
         }
 
         for prefix, link in links.items():
