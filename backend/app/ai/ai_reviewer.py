@@ -1,10 +1,12 @@
 """AI-assisted code review engine."""
 
 import os
+import logging
 from typing import List, Optional, Dict, Tuple
 from google import genai
-from google.genai import types
 from app.models import Violation, SeverityLevel
+
+logger = logging.getLogger(__name__)
 
 
 class AIReviewer:
@@ -16,9 +18,11 @@ class AIReviewer:
         self.use_ai = self.api_key is not None
         
         if self.use_ai:
-            # Initialize the Client (replaces genai.configure)
+            # Using the new google.genai API
+            self.model_name = "gemini-3-flash-preview" 
+            # Create client with API key
             self.client = genai.Client(api_key=self.api_key)
-            self.model_name = "gemini-1.5-flash"
+            self.model = self.client.models.generate_content
 
     def suggest_fix(self, violation: Violation) -> Tuple[str, str]:
         """
@@ -57,26 +61,43 @@ EXPLANATION:
 BEST_PRACTICES:
 [practices here]
 """
-            # Configuration for the generation (includes system instructions)
-            config = types.GenerateContentConfig(
-                temperature=0.3,
-                max_output_tokens=1000,
-                system_instruction="You are a security expert reviewing code for vulnerabilities."
-            )
-
-            # Call the model via the client
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt,
-                config=config
-            )
+            # Call Gemini API using the new client
+            # Try primary model first, fall back to alternatives if needed
+            model_to_use = self.model_name
+            try:
+                response = self.client.models.generate_content(
+                    model=model_to_use,
+                    contents=prompt,
+                    config={
+                        "temperature": 0.3,
+                        "max_output_tokens": 1000,
+                    }
+                )
+            except Exception as e:
+                # If model not found, try gemini-pro as fallback
+                if "404" in str(e) or "not found" in str(e).lower():
+                    logger.info(f"Model {model_to_use} not found, trying gemini-pro")
+                    model_to_use = "gemini-pro"
+                    response = self.client.models.generate_content(
+                        model=model_to_use,
+                        contents=prompt,
+                        config={
+                            "temperature": 0.3,
+                            "max_output_tokens": 1000,
+                        }
+                    )
+                else:
+                    raise
             
             # Access text directly from the response object
             return self._parse_ai_response(response.text)
 
         except Exception as e:
-            # Fall back to rule-based approach on error
-            print(f"Gemini Error for {violation.rule_id}: {e}")
+            # Fall back to rule-based approach on error (e.g., Safety filters or API limits)
+            logger.warning(
+                f"Failed to generate AI suggestion for {violation.rule_id}: {type(e).__name__}: {e}. "
+                f"Using rule-based fallback."
+            )
             return self._rule_based_suggest_fix(violation)
 
     def _parse_ai_response(self, response_text: str) -> Tuple[str, str]:
@@ -166,13 +187,7 @@ Provide your analysis in 2-3 sentences.
             ),
         }
 
-        return fixes.get(
-            violation.rule_id, 
-            (
-                "# Review and refactor this code\n# Follow best practices for secure coding",
-                f"Review this violation: {violation.message}"
-            )
-        )
+        return fixes.get(violation.rule_id, ("# Review code", violation.message))
 
     def generate_explanation(self, violation: Violation) -> str:
         """Generate a developer-friendly explanation for a violation."""

@@ -51,7 +51,7 @@ async def health_check():
     return {
         "status": "healthy",
         "version": "1.0.0",
-        "ai_enabled": ai_reviewer.use_openai,
+        "ai_enabled": ai_reviewer.use_ai,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
