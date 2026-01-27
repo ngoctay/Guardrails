@@ -1,0 +1,56 @@
+<%- include('header') %>
+
+<div class="card">
+    <h2>Welcome to Guardrails</h2>
+    
+    <% if (backendHealthy) { %>
+        <div class="alert success">
+            <strong>✓ Backend API Status:</strong> <span class="status healthy">Healthy</span>
+        </div>
+    <% } else { %>
+        <div class="alert error">
+            <strong>✗ Backend API Status:</strong> <span class="status error">Unavailable</span>
+            <p>The backend API is not reachable. Please ensure it's running at <%= backendUrl %></p>
+        </div>
+    <% } %>
+
+    <p>Guardrails provides enterprise-grade security scanning for GitHub Copilot-generated code. Monitor violations, track trends, and enforce security policies across your repositories.</p>
+
+    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Features</h3>
+    <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem; line-height: 2;">
+        <li>🔍 Real-time code analysis on pull requests</li>
+        <li>🤖 AI-generated code detection and validation</li>
+        <li>📊 Comprehensive audit logging and compliance tracking</li>
+        <li>⚙️ Customizable security policies</li>
+        <li>📈 Security trends and insights</li>
+        <li>🔐 License compliance checking</li>
+    </ul>
+
+    <div class="grid">
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #eee;">
+            <h3 style="color: #667eea; margin-bottom: 1rem;">📋 View Audit Logs</h3>
+            <p>Track all code scans, violations, and policy enforcement actions.</p>
+            <button onclick="window.location.href='/dashboard'" style="width: 100%; margin-top: 1rem;">Go to Dashboard</button>
+        </div>
+
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #eee;">
+            <h3 style="color: #667eea; margin-bottom: 1rem;">📈 Security Insights</h3>
+            <p>Analyze trends and identify the most common security issues in your organization.</p>
+            <button onclick="window.location.href='/insights'" style="width: 100%; margin-top: 1rem;">View Insights</button>
+        </div>
+
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #eee;">
+            <h3 style="color: #667eea; margin-bottom: 1rem;">🛡️ Security Rules</h3>
+            <p>Learn about all available security rules and their severity levels.</p>
+            <button onclick="window.location.href='/rules'" style="width: 100%; margin-top: 1rem;">Browse Rules</button>
+        </div>
+
+        <div style="background: white; padding: 1.5rem; border-radius: 8px; border: 1px solid #eee;">
+            <h3 style="color: #667eea; margin-bottom: 1rem;">⚙️ Settings</h3>
+            <p>Configure backend URL and other application settings.</p>
+            <button onclick="window.location.href='/settings'" style="width: 100%; margin-top: 1rem;">Settings</button>
+        </div>
+    </div>
+</div>
+
+<%- include('footer') %>

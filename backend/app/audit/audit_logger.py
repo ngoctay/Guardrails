@@ -44,6 +44,7 @@ class AuditLogger:
         self.log_dir = log_dir
         self.events: List[AuditEvent] = []
         self._ensure_log_dir()
+        self.load_audit_logs(self.log_dir)
 
     def _ensure_log_dir(self) -> None:
         """Ensure log directory exists."""
@@ -197,7 +198,7 @@ class AuditLogger:
 
     def load_audit_logs(self, log_dir: str) -> None:
         """
-        Load audit logs from directory.
+        Load audit logs from directory. Handles multi-line JSON objects.
         """
         if not os.path.exists(log_dir):
             return
@@ -206,26 +207,53 @@ class AuditLogger:
             if filename.endswith(".jsonl"):
                 filepath = os.path.join(log_dir, filename)
                 with open(filepath, "r") as f:
-                    for line in f:
+                    content = f.read()
+                    # Split objects by pattern: }\n{ which indicates end of one object and start of another
+                    # First, we need to find all JSON objects
+                    objects = []
+                    current_obj_start = 0
+                    brace_count = 0
+                    
+                    for i, char in enumerate(content):
+                        if char == '{':
+                            if brace_count == 0:
+                                current_obj_start = i
+                            brace_count += 1
+                        elif char == '}':
+                            brace_count -= 1
+                            if brace_count == 0:
+                                # Found a complete object
+                                obj_str = content[current_obj_start:i+1]
+                                objects.append(obj_str)
+                    
+                    # Parse each object
+                    for obj_str in objects:
                         try:
-                            event_dict = json.loads(line)
-                            event = AuditEvent(
-                                event_id=event_dict["event_id"],
-                                timestamp=event_dict["timestamp"],
-                                repo_name=event_dict["repo_name"],
-                                pr_number=event_dict["pr_number"],
-                                commit_hash=event_dict["commit_hash"],
-                                violation_count=event_dict["violation_count"],
-                                critical_count=event_dict["critical_count"],
-                                high_count=event_dict["high_count"],
-                                enforcement_action=event_dict["enforcement_action"],
-                                blocked=event_dict["blocked"],
-                                override_applied=event_dict.get("override_applied", False),
-                                override_reason=event_dict.get("override_reason"),
-                                pr_url=event_dict.get("pr_url"),
-                                scan_id=event_dict.get("scan_id"),
-                                violations_summary=event_dict.get("violations_summary"),
-                            )
-                            self.events.append(event)
-                        except json.JSONDecodeError:
-                            pass
+                            event_dict = json.loads(obj_str)
+                            self._create_event_from_dict(event_dict)
+                        except (json.JSONDecodeError, ValueError) as e:
+                            print(f"Error parsing object: {e}")
+
+    def _create_event_from_dict(self, event_dict: dict) -> None:
+        """Helper method to create an AuditEvent from a dictionary."""
+        try:
+            event = AuditEvent(
+                event_id=event_dict["event_id"],
+                timestamp=event_dict["timestamp"],
+                repo_name=event_dict["repo_name"],
+                pr_number=event_dict["pr_number"],
+                commit_hash=event_dict["commit_hash"],
+                violation_count=event_dict["violation_count"],
+                critical_count=event_dict["critical_count"],
+                high_count=event_dict["high_count"],
+                enforcement_action=event_dict["enforcement_action"],
+                blocked=event_dict["blocked"],
+                override_applied=event_dict.get("override_applied", False),
+                override_reason=event_dict.get("override_reason"),
+                pr_url=event_dict.get("pr_url"),
+                scan_id=event_dict.get("scan_id"),
+                violations_summary=event_dict.get("violations_summary"),
+            )
+            self.events.append(event)
+        except (KeyError, ValueError) as e:
+            print(f"Error creating event from dict: {e}")

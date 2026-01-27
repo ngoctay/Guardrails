@@ -1,0 +1,67 @@
+<%- include('header') %>
+
+<div class="card">
+    <h2>Settings</h2>
+
+    <h3 style="margin-bottom: 1rem;">Backend Configuration</h3>
+    <div style="background-color: #f5f5f5; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem;">
+        <p style="margin-bottom: 0.5rem;"><strong>Backend URL:</strong></p>
+        <p style="background-color: white; padding: 0.75rem; border-radius: 4px; font-family: monospace; word-break: break-all;">
+            <%= backendUrl %>
+        </p>
+    </div>
+
+    <h3 style="margin-bottom: 1rem;">Application Information</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div style="background-color: #f5f5f5; padding: 1.5rem; border-radius: 4px;">
+            <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Version</p>
+            <p style="font-weight: bold; font-size: 1.2rem;">1.0.0</p>
+        </div>
+        <div style="background-color: #f5f5f5; padding: 1.5rem; border-radius: 4px;">
+            <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Environment</p>
+            <p style="font-weight: bold; font-size: 1.2rem;"><%= process.env.NODE_ENV || 'development' %></p>
+        </div>
+        <div style="background-color: #f5f5f5; padding: 1.5rem; border-radius: 4px;">
+            <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Node.js Version</p>
+            <p style="font-weight: bold; font-size: 1.2rem;"><%= process.version %></p>
+        </div>
+    </div>
+
+    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Support</h3>
+    <div style="background-color: #e8f4fd; border: 1px solid #b3d9e8; padding: 1.5rem; border-radius: 4px;">
+        <p><strong>📖 Documentation:</strong> See <code>README.md</code> and <code>DEPLOYMENT.md</code> for setup instructions.</p>
+        <p style="margin-top: 1rem;"><strong>🐛 Issues:</strong> Report issues on GitHub or contact the development team.</p>
+        <p style="margin-top: 1rem;"><strong>💬 Support:</strong> For support inquiries, reach out to the security team.</p>
+    </div>
+
+    <div style="margin-top: 2rem;">
+        <button onclick="testBackend()">🔍 Test Backend Connection</button>
+    </div>
+
+    <div id="testResult" style="margin-top: 1rem; display: none; padding: 1rem; border-radius: 4px;"></div>
+</div>
+
+<script>
+function testBackend() {
+    const resultDiv = document.getElementById('testResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = 'Testing...';
+    resultDiv.style.backgroundColor = '#fff3cd';
+
+    fetch('/health')
+        .then(r => r.json())
+        .then(data => {
+            resultDiv.innerHTML = '✓ Backend is healthy: ' + JSON.stringify(data, null, 2);
+            resultDiv.style.backgroundColor = '#d4edda';
+            resultDiv.style.color = '#155724';
+            resultDiv.innerHTML = '<pre style="margin: 0;">' + JSON.stringify(data, null, 2) + '</pre>';
+        })
+        .catch(err => {
+            resultDiv.innerHTML = '✗ Backend test failed: ' + err.message;
+            resultDiv.style.backgroundColor = '#f8d7da';
+            resultDiv.style.color = '#721c24';
+        });
+}
+</script>
+
+<%- include('footer') %>
