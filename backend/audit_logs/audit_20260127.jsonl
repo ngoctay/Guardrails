@@ -1,0 +1,152 @@
+{
+  "event_id": "7cbcb0bd-7ae5-4b51-a790-8f8931f351e4",
+  "timestamp": "2026-01-27T19:40:40.499691",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 8,
+  "commit_hash": "93ed79ba042e1cee9118184344c98cc4b5cb1fe8",
+  "violation_count": 4,
+  "critical_count": 2,
+  "high_count": 0,
+  "enforcement_action": "warning",
+  "blocked": true,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "61bd6e0f-8f69-4f31-957a-26fb3319bf6b",
+  "violations_summary": [
+    {
+      "rule_id": "SEC-001",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-004",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    }
+  ]
+}
+{
+  "event_id": "0e43a533-499f-4581-97a8-912b703af5ef",
+  "timestamp": "2026-01-27T20:00:43.242565",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 8,
+  "commit_hash": "f4e5a903b00ba052ec4f3287fbb6ca8578272ff3",
+  "violation_count": 4,
+  "critical_count": 2,
+  "high_count": 0,
+  "enforcement_action": "warning",
+  "blocked": true,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "cdf5b0e7-2e53-4ff5-b6dc-4bcc6ac92d4f",
+  "violations_summary": [
+    {
+      "rule_id": "SEC-001",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-004",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    }
+  ]
+}
+{
+  "event_id": "d6505726-1833-4e81-90e8-0e0188ea5587",
+  "timestamp": "2026-01-27T20:03:38.997502",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 8,
+  "commit_hash": "1ebcc2689511e4fa22bb33779cfafa61f70d76f4",
+  "violation_count": 4,
+  "critical_count": 2,
+  "high_count": 0,
+  "enforcement_action": "warning",
+  "blocked": true,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "02cbd409-8035-42e2-a02a-f79a55f3cb18",
+  "violations_summary": [
+    {
+      "rule_id": "SEC-001",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-004",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    }
+  ]
+}
+{
+  "event_id": "26e35394-189e-41bd-9a87-30b7bb6bc381",
+  "timestamp": "2026-01-27T20:07:14.623837",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 8,
+  "commit_hash": "d9b11b3ae2320d90c2d32298f34c788b138c54e5",
+  "violation_count": 4,
+  "critical_count": 2,
+  "high_count": 0,
+  "enforcement_action": "warning",
+  "blocked": true,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "975b0644-827b-42ae-ae22-6ae28df1be7b",
+  "violations_summary": [
+    {
+      "rule_id": "SEC-001",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-004",
+      "severity": "critical",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-009",
+      "severity": "medium",
+      "category": "security"
+    }
+  ]
+}

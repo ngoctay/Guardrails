@@ -1,9 +1,12 @@
 """AI-assisted code review engine."""
 
 import os
+import logging
 from typing import List, Optional, Dict, Tuple
-import google.genai as genai
+from google import genai
 from app.models import Violation, SeverityLevel
+
+logger = logging.getLogger(__name__)
 
 
 class AIReviewer:
@@ -15,13 +18,11 @@ class AIReviewer:
         self.use_ai = self.api_key is not None
         
         if self.use_ai:
-            genai.configure(api_key=self.api_key)
-            # Using 1.5-flash for speed/cost, or 1.5-pro for deeper reasoning
-            self.model_name = "gemini-1.5-flash" 
-            self.model = genai.GenerativeModel(
-                model_name=self.model_name,
-                system_instruction="You are a security expert reviewing code for vulnerabilities."
-            )
+            # Using the new google.genai API
+            self.model_name = "gemini-3-flash-preview" 
+            # Create client with API key
+            self.client = genai.Client(api_key=self.api_key)
+            self.model = self.client.models.generate_content
 
     def suggest_fix(self, violation: Violation) -> Tuple[str, str]:
         """
@@ -60,22 +61,42 @@ EXPLANATION:
 BEST_PRACTICES:
 [practices here]
 """
-            # Gemini generation config
-            generation_config = genai.types.GenerationConfig(
-                temperature=0.3,
-                max_output_tokens=1000,
-            )
-
-            response = self.model.generate_content(
-                prompt, 
-                generation_config=generation_config
-            )
+            # Call Gemini API using the new client
+            # Try primary model first, fall back to alternatives if needed
+            model_to_use = self.model_name
+            try:
+                response = self.client.models.generate_content(
+                    model=model_to_use,
+                    contents=prompt,
+                    config={
+                        "temperature": 0.3,
+                        "max_output_tokens": 1000,
+                    }
+                )
+            except Exception as e:
+                # If model not found, try gemini-pro as fallback
+                if "404" in str(e) or "not found" in str(e).lower():
+                    logger.info(f"Model {model_to_use} not found, trying gemini-pro")
+                    model_to_use = "gemini-pro"
+                    response = self.client.models.generate_content(
+                        model=model_to_use,
+                        contents=prompt,
+                        config={
+                            "temperature": 0.3,
+                            "max_output_tokens": 1000,
+                        }
+                    )
+                else:
+                    raise
             
             return self._parse_ai_response(response.text)
 
         except Exception as e:
             # Fall back to rule-based approach on error (e.g., Safety filters or API limits)
-            print(f"Gemini Error: {e}")
+            logger.warning(
+                f"Failed to generate AI suggestion for {violation.rule_id}: {type(e).__name__}: {e}. "
+                f"Using rule-based fallback."
+            )
             return self._rule_based_suggest_fix(violation)
 
     def _parse_ai_response(self, response_text: str) -> Tuple[str, str]:
@@ -121,7 +142,10 @@ Code Context:
 Is this violation a false positive? Could it be a legitimate use case?
 Provide your analysis in 2-3 sentences.
 """
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt
+            )
             return response.text.strip()
         except Exception:
             return ""
@@ -160,60 +184,6 @@ Provide your analysis in 2-3 sentences.
         }
 
         return fixes.get(violation.rule_id, ("# Review code", violation.message))
-
-    def analyze_context(
-        self,
-        violation: Violation,
-        surrounding_code: str
-    ) -> Optional[str]:
-        """
-        Analyze the context of a violation using AI.
-        Returns additional context or reasoning.
-
-        Falls back to empty string if AI unavailable.
-        """
-        if self.use_openai:
-            return self._ai_analyze_context(violation, surrounding_code)
-        else:
-            return ""
-
-    def _ai_analyze_context(self, violation: Violation, surrounding_code: str) -> str:
-        """Analyze context using OpenAI API."""
-        try:
-            import openai
-
-            openai.api_key = self.openai_api_key
-
-            prompt = f"""
-Analyze the following code violation in context:
-
-Violation: {violation.rule_name}
-Message: {violation.message}
-
-Code Context:
-{surrounding_code}
-
-Is this violation a false positive? Could it be a legitimate use case?
-Provide your analysis in 2-3 sentences.
-"""
-
-            response = openai.ChatCompletion.create(
-                model=self.model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a security expert analyzing code violations.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.3,
-                max_tokens=200,
-            )
-
-            return response.choices[0].message.content.strip()
-
-        except Exception:
-            return ""
 
     def generate_explanation(self, violation: Violation) -> str:
         """Generate a developer-friendly explanation for a violation."""
