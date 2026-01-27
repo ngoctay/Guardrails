@@ -71,6 +71,7 @@ class CodeAnalyzer:
             ".sql",
             ".scala",
             ".kt",
+            ".txt"
         }
         return any(file_path.endswith(ext) for ext in code_extensions)
 
