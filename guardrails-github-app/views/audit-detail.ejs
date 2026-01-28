@@ -1,0 +1,127 @@
+<%- include('header') %>
+
+<div class="card">
+    <h2>Audit Log Details</h2>
+
+    <% if (event) { %>
+        <div style="background-color: #f9f9f9; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #667eea; margin-bottom: 2rem;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                <div>
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Event ID</p>
+                    <p style="font-weight: bold; word-break: break-all;"><code><%= event.event_id %></code></p>
+                </div>
+                <div>
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Timestamp</p>
+                    <p style="font-weight: bold;"><%= new Date(event.timestamp).toLocaleString() %></p>
+                </div>
+                <div>
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Repository</p>
+                    <p style="font-weight: bold;"><code><%= event.repo_name %></code></p>
+                </div>
+                <div>
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Pull Request</p>
+                    <p style="font-weight: bold;">#<%= event.pr_number %></p>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">Scan Results</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div style="background-color: #f5f5f5; padding: 1rem; border-radius: 4px; text-align: center;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Total Violations</p>
+                <p style="font-size: 2rem; font-weight: bold; color: #667eea;"><%= event.violation_count %></p>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 1rem; border-radius: 4px; text-align: center;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Critical</p>
+                <p style="font-size: 2rem; font-weight: bold; color: #d9534f;"><%= event.critical_count %></p>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 1rem; border-radius: 4px; text-align: center;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">High</p>
+                <p style="font-size: 2rem; font-weight: bold; color: #f0ad4e;"><%= event.high_count %></p>
+            </div>
+            <div style="background-color: #f5f5f5; padding: 1rem; border-radius: 4px; text-align: center;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Commit</p>
+                <p style="font-size: 1.2rem; font-weight: bold; font-family: monospace;"><%= event.commit_hash.substring(0, 8) %></p>
+            </div>
+        </div>
+
+        <h3 style="margin-bottom: 1rem;">Enforcement Action</h3>
+        <div style="background-color: #f5f5f5; padding: 1.5rem; border-radius: 4px; margin-bottom: 2rem;">
+            <p style="margin-bottom: 0.5rem;">
+                <strong>Action:</strong> 
+                <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; 
+                    <% if (event.enforcement_action === 'blocking') { %>
+                        background-color: #f8d7da; color: #721c24;
+                    <% } else if (event.enforcement_action === 'warning') { %>
+                        background-color: #fff3cd; color: #856404;
+                    <% } else { %>
+                        background-color: #d4edda; color: #155724;
+                    <% } %>
+                ">
+                    <%= event.enforcement_action.toUpperCase() %>
+                </span>
+            </p>
+            <p style="margin-bottom: 0.5rem;">
+                <strong>PR Blocked:</strong> 
+                <span style="<%= event.blocked ? 'color: #d9534f;' : 'color: #5cb85c;' %>">
+                    <%= event.blocked ? '🚫 Yes' : '✓ No' %>
+                </span>
+            </p>
+            <% if (event.override_applied) { %>
+                <p style="margin-bottom: 0;">
+                    <strong>Override Applied:</strong> ✓ Yes
+                    <% if (event.override_reason) { %>
+                        <br><strong>Reason:</strong> <%= event.override_reason %>
+                    <% } %>
+                </p>
+            <% } %>
+        </div>
+
+        <% if (event.violations_summary && event.violations_summary.length > 0) { %>
+            <h3 style="margin-bottom: 1rem;">Violations Summary</h3>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                            <th style="padding: 1rem; text-align: left;">Rule ID</th>
+                            <th style="padding: 1rem; text-align: left;">Category</th>
+                            <th style="padding: 1rem; text-align: left;">Severity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% event.violations_summary.forEach((violation) => { %>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 1rem;"><code><%= violation.rule_id %></code></td>
+                                <td style="padding: 1rem; text-transform: capitalize;"><%= violation.category.replace(/_/g, ' ') %></td>
+                                <td style="padding: 1rem;">
+                                    <span style="padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; font-size: 0.85rem;
+                                        <% if (violation.severity === 'critical') { %>
+                                            background-color: #d9534f; color: white;
+                                        <% } else if (violation.severity === 'high') { %>
+                                            background-color: #f0ad4e; color: white;
+                                        <% } else if (violation.severity === 'medium') { %>
+                                            background-color: #5bc0de; color: white;
+                                        <% } else { %>
+                                            background-color: #5cb85c; color: white;
+                                        <% } %>
+                                    ">
+                                        <%= violation.severity.toUpperCase() %>
+                                    </span>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+
+        <div style="margin-top: 2rem;">
+            <a href="/dashboard" style="padding: 0.75rem 1.5rem; background-color: #667eea; color: white; text-decoration: none; border-radius: 4px;">← Back to Dashboard</a>
+        </div>
+    <% } else { %>
+        <p style="color: #999; font-style: italic;">Audit event not found.</p>
+        <a href="/dashboard" style="padding: 0.75rem 1.5rem; background-color: #667eea; color: white; text-decoration: none; border-radius: 4px;">← Back to Dashboard</a>
+    <% } %>
+</div>
+
+<%- include('footer') %>

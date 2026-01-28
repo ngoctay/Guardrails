@@ -1,0 +1,76 @@
+<%- include('header') %>
+
+<div class="card">
+    <h2>Security Rules</h2>
+    <p>All available security rules and their severity levels.</p>
+
+    <div style="margin-bottom: 2rem;">
+        <input type="text" id="searchRules" placeholder="Search rules..." style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+    </div>
+
+    <% if (rules && rules.length > 0) { %>
+        <div id="rulesContainer">
+            <% 
+            const groupedRules = {};
+            rules.forEach(rule => {
+                if (!groupedRules[rule.category]) {
+                    groupedRules[rule.category] = [];
+                }
+                groupedRules[rule.category].push(rule);
+            });
+
+            Object.keys(groupedRules).sort().forEach(category => {
+            %>
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem; text-transform: capitalize; color: #667eea;">
+                    <%= category.replace(/_/g, ' ') %>
+                </h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <% groupedRules[category].forEach(rule => { %>
+                        <div class="rule-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; background-color: #f9f9f9;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                <h4 style="color: #333; flex: 1;">
+                                    <code><%= rule.rule_id %></code>: <%= rule.name %>
+                                </h4>
+                                <span style="padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold; font-size: 0.8rem;
+                                    <% if (rule.severity === 'critical') { %>
+                                        background-color: #d9534f; color: white;
+                                    <% } else if (rule.severity === 'high') { %>
+                                        background-color: #f0ad4e; color: white;
+                                    <% } else if (rule.severity === 'medium') { %>
+                                        background-color: #5bc0de; color: white;
+                                    <% } else { %>
+                                        background-color: #5cb85c; color: white;
+                                    <% } %>
+                                ">
+                                    <%= rule.severity.toUpperCase() %>
+                                </span>
+                            </div>
+                            
+                            <p style="margin-bottom: 1rem; color: #666;"><%= rule.description %></p>
+                            
+                            <div style="background-color: white; padding: 1rem; border-radius: 4px; font-size: 0.9rem;">
+                                <p><strong>CWE:</strong> <code><%= rule.cwe %></code></p>
+                                <p><strong>OWASP:</strong> <%= rule.owasp %></p>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% }); %>
+        </div>
+
+        <script>
+        document.getElementById('searchRules').addEventListener('keyup', function(e) {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.rule-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+        </script>
+    <% } else { %>
+        <p style="color: #999; font-style: italic;">No rules available.</p>
+    <% } %>
+</div>
+
+<%- include('footer') %>

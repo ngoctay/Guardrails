@@ -1,0 +1,81 @@
+<%- include('header') %>
+
+<div class="card">
+    <h2>Security Insights</h2>
+    <p>Analysis of security violations over the last <%= days %> days.</p>
+
+    <% if (data) { %>
+        <div class="grid">
+            <div class="stat-card">
+                <h3>Total Scans</h3>
+                <div class="value"><%= data.total_scans %></div>
+            </div>
+            <div class="stat-card">
+                <h3>Avg Violations/Scan</h3>
+                <div class="value"><%= data.avg_violations_per_scan.toFixed(1) %></div>
+            </div>
+            <div class="stat-card">
+                <h3>Critical Issues</h3>
+                <div class="value"><%= data.critical_violations %></div>
+            </div>
+            <div class="stat-card">
+                <h3>High Issues</h3>
+                <div class="value"><%= data.high_violations %></div>
+            </div>
+            <div class="stat-card">
+                <h3>PRs Blocked</h3>
+                <div class="value"><%= data.prs_blocked %></div>
+            </div>
+            <div class="stat-card">
+                <h3>Overrides Applied</h3>
+                <div class="value"><%= data.overrides_applied %></div>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Top Violations</h3>
+        
+        <% if (data.top_violations && data.top_violations.length > 0) { %>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                            <th style="padding: 1rem; text-align: left;">Rule ID</th>
+                            <th style="padding: 1rem; text-align: center;">Count</th>
+                            <th style="padding: 1rem; text-align: left;">Bar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% 
+                        const maxCount = Math.max(...data.top_violations.map(v => v.count));
+                        data.top_violations.forEach((violation) => {
+                            const percentage = (violation.count / maxCount) * 100;
+                        %>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 1rem;"><code><%= violation.rule_id %></code></td>
+                                <td style="padding: 1rem; text-align: center; font-weight: bold;"><%= violation.count %></td>
+                                <td style="padding: 1rem;">
+                                    <div style="background-color: #667eea; height: 20px; width: <%= percentage %>%; border-radius: 3px;"></div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        <% } else { %>
+            <p style="color: #999; font-style: italic;">No violation data available.</p>
+        <% } %>
+
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Summary</h3>
+        <div style="background-color: #f5f5f5; padding: 1.5rem; border-radius: 4px; line-height: 1.8;">
+            <p><strong>Total Violations:</strong> <%= data.total_violations %></p>
+            <p><strong>Critical Issues:</strong> <%= data.critical_violations %> ({{ (data.critical_violations / data.total_violations * 100).toFixed(1) }}%)</p>
+            <p><strong>High Priority Issues:</strong> <%= data.high_violations %> ({{ (data.high_violations / data.total_violations * 100).toFixed(1) }}%)</p>
+            <p><strong>Pull Requests Blocked:</strong> <%= data.prs_blocked %> ({{ (data.prs_blocked / data.total_scans * 100).toFixed(1) }}%)</p>
+            <p><strong>Policy Overrides:</strong> <%= data.overrides_applied %></p>
+        </div>
+    <% } else { %>
+        <p style="color: #999; font-style: italic;">No insights data available.</p>
+    <% } %>
+</div>
+
+<%- include('footer') %>

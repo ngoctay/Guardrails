@@ -316,29 +316,19 @@ guardrails/
 └── guardrails-config.yml           # Policy configuration
 ```
 
-## Roadmap & Future Features
+## Features
 
-### Phase 1 (Current - Minimal Working System)
-✅ Basic security rules engine
+✅ Security rules engine
 ✅ GitHub PR integration
 ✅ PR comment posting
 ✅ Violation severity levels
 ✅ CWE/OWASP mapping
+    Dashboard
 
-### Phase 2 (Planned)
-- [ ] Custom rule packs for regulated industries
-- [ ] License compliance scanning
-- [ ] Policy enforcement modes (blocking)
-- [ ] Suggested code fixes
-- [ ] Copilot-specific detection
-- [ ] Audit logging & reporting
 
-### Phase 3 (Future)
-- [ ] LLM-based contextual analysis
-- [ ] Dashboard & visualization
-- [ ] Enterprise authentication
-- [ ] Custom rule builder UI
-- [ ] Multi-language support enhancement
+## Dashboard
+
+![alt text](image.png)
 
 ## Security Notes
 
@@ -416,9 +406,6 @@ This is a minimal working prototype. Areas for contribution:
 - Enhanced error handling
 - Documentation improvements
 
-## License
-
-ISC
 
 ## Support
 

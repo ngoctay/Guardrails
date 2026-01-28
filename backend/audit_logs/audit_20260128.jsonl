@@ -1,0 +1,33 @@
+{
+  "event_id": "b48c16c1-828a-4165-a961-b60b6363cfdf",
+  "timestamp": "2026-01-28T03:33:46.653939",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 9,
+  "commit_hash": "33a7534ab7bdf9a2707391e5af3b477774ad13d4",
+  "violation_count": 3,
+  "critical_count": 0,
+  "high_count": 3,
+  "enforcement_action": "warning",
+  "blocked": false,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "279655a7-c837-4e4c-a5f7-778149ee50f6",
+  "violations_summary": [
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    }
+  ]
+}

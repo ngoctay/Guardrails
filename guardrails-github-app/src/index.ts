@@ -1,4 +1,5 @@
 import { Probot } from "probot";
+import { createWebServer, startWebServer } from "./web-server.js";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
@@ -405,4 +406,17 @@ export default (app: Probot) => {
       }
     }
   });
+
+  // Start the web server for the dashboard (non-blocking, runs separately from Probot)
+  // Use port 3001 by default to avoid conflicts with Probot (port 3000)
+  setTimeout(() => {
+    try {
+      const webPort = process.env.WEB_PORT ? parseInt(process.env.WEB_PORT) : 3001;
+      console.log("[App] Starting web server for dashboard on port " + webPort + "...");
+      createWebServer();
+      startWebServer(webPort);
+    } catch (err) {
+      console.error("[App] ❌ Failed to start web server:", err);
+    }
+  }, 1000); // Delay to let Probot start first
 };

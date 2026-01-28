@@ -1,0 +1,163 @@
+<%- include('header') %>
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>Audit Log Dashboard</h2>
+        <div>
+            <form method="GET" style="display: flex; gap: 1rem; align-items: center;">
+                <label for="days">Time Period:</label>
+                <select name="days" id="days" onchange="this.form.submit()">
+                    <option value="7" <%= days === 7 ? 'selected' : '' %>>Last 7 days</option>
+                    <option value="14" <%= days === 14 ? 'selected' : '' %>>Last 14 days</option>
+                    <option value="30" <%= days === 30 ? 'selected' : '' %>>Last 30 days</option>
+                    <option value="90" <%= days === 90 ? 'selected' : '' %>>Last 90 days</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <% if (summary) { %>
+        <div class="grid">
+            <div class="stat-card">
+                <h3>Total Scans</h3>
+                <div class="value"><%= summary.total_scans %></div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Violations</h3>
+                <div class="value"><%= summary.total_violations %></div>
+            </div>
+            <div class="stat-card">
+                <h3>Critical Issues</h3>
+                <div class="value"><%= summary.total_critical %></div>
+            </div>
+            <div class="stat-card">
+                <h3>High Issues</h3>
+                <div class="value"><%= summary.total_high %></div>
+            </div>
+            <div class="stat-card">
+                <h3>PRs Blocked</h3>
+                <div class="value"><%= summary.total_blocked %></div>
+            </div>
+            <div class="stat-card">
+                <h3>Overrides Applied</h3>
+                <div class="value"><%= summary.total_overrides %></div>
+            </div>
+        </div>
+    <% } %>
+
+    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Recent Audit Events</h3>
+
+    <% if (events && events.length > 0) { %>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                        <th style="padding: 1rem; text-align: left;">Timestamp</th>
+                        <th style="padding: 1rem; text-align: left;">Repository</th>
+                        <th style="padding: 1rem; text-align: left;">PR #</th>
+                        <th style="padding: 1rem; text-align: center;">Violations</th>
+                        <th style="padding: 1rem; text-align: center;">Critical</th>
+                        <th style="padding: 1rem; text-align: center;">High</th>
+                        <th style="padding: 1rem; text-align: left;">Action</th>
+                        <th style="padding: 1rem; text-align: left;">Status</th>
+                        <th style="padding: 1rem; text-align: center;">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% events.forEach((event) => { %>
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 1rem;"><%= new Date(event.timestamp).toLocaleString() %></td>
+                            <td style="padding: 1rem;"><code><%= event.repo_name %></code></td>
+                            <td style="padding: 1rem;">#<%= event.pr_number %></td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <span style="<%= event.violation_count > 0 ? 'color: #d9534f; font-weight: bold;' : 'color: #5cb85c;' %>">
+                                    <%= event.violation_count %>
+                                </span>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <span style="<%= event.critical_count > 0 ? 'color: #d9534f; font-weight: bold;' : '' %>">
+                                    <%= event.critical_count %>
+                                </span>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <span style="<%= event.high_count > 0 ? 'color: #f0ad4e; font-weight: bold;' : '' %>">
+                                    <%= event.high_count %>
+                                </span>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem; font-weight: bold; 
+                                    <% if (event.enforcement_action === 'blocking') { %>
+                                        background-color: #f8d7da; color: #721c24;
+                                    <% } else if (event.enforcement_action === 'warning') { %>
+                                        background-color: #fff3cd; color: #856404;
+                                    <% } else { %>
+                                        background-color: #d4edda; color: #155724;
+                                    <% } %>
+                                ">
+                                    <%= event.enforcement_action %>
+                                </span>
+                            </td>
+                            <td style="padding: 1rem;">
+                                <% if (event.blocked) { %>
+                                    <span style="color: #d9534f; font-weight: bold;">🚫 Blocked</span>
+                                <% } else if (event.override_applied) { %>
+                                    <span style="color: #f0ad4e; font-weight: bold;">✓ Overridden</span>
+                                <% } else { %>
+                                    <span style="color: #5cb85c; font-weight: bold;">✓ Passed</span>
+                                <% } %>
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <a href="/audit/<%= event.event_id %>" style="padding: 0.5rem 1rem; background-color: #667eea; color: white; text-decoration: none; border-radius: 4px; font-size: 0.85rem;">View</a>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <p style="color: #999; font-style: italic;">No audit events found for the selected period.</p>
+    <% } %>
+
+    <div style="margin-top: 2rem;">
+        <button onclick="exportLogs()">📥 Export Logs (JSON)</button>
+        <button onclick="exportCSV()" style="margin-left: 1rem;">📥 Export Logs (CSV)</button>
+    </div>
+</div>
+
+<script>
+function exportLogs() {
+    fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ format: 'json' })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Audit logs exported successfully: ' + data.filename);
+        } else {
+            alert('Export failed: ' + data.error);
+        }
+    })
+    .catch(err => alert('Error: ' + err.message));
+}
+
+function exportCSV() {
+    fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ format: 'csv' })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            alert('Audit logs exported successfully: ' + data.filename);
+        } else {
+            alert('Export failed: ' + data.error);
+        }
+    })
+    .catch(err => alert('Error: ' + err.message));
+}
+</script>
+
+<%- include('footer') %>

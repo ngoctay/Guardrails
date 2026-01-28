@@ -128,94 +128,198 @@ services:
     restart: always
 ```
 
-## Normal Deployment (Without Docker)
+## AWS Deployment
 
-### 1. Backend
+### Prerequisites
+- AWS Free Tier account
+- EC2 key pair
+- GitHub App credentials
+- Google Gemini API key
+
+### 1. Launch EC2 Instance
+
+1. **Go to EC2 Dashboard** → Click "Launch Instance"
+2. **Choose AMI**: Select "Ubuntu Server 22.04 LTS (Free tier eligible)"
+3. **Instance Type**: Select `t2.micro` (Free tier eligible)
+4. **Configure Security Group**:
+   - SSH (22): From your IP
+   - HTTP (80): From anywhere (0.0.0.0/0)
+   - HTTPS (443): From anywhere (0.0.0.0/0)
+   - Custom TCP (8000): From anywhere (for backend API)
+   - Custom TCP (3000): From anywhere (for GitHub App)
+
+5. **Storage**: Keep 30 GB (Free tier eligible)
+6. **Key Pair**: Create or select an existing one
+7. **Launch** and note your instance's Public IP
+
+### 2. Connect to EC2
 
 ```bash
-cd backend
+ssh -i your-key.pem ubuntu@<your-ec2-public-ip>
 
-# Install dependencies
+sudo apt update && sudo apt upgrade -y
+
+sudo apt install -y python3.11 python3.11-venv python3-pip nodejs npm git curl
+
+python3 --version
+node --version
+npm --version
+```
+
+### 3. Deploy Application
+
+```bash
+# Clone repository
+cd /home/ubuntu
+git clone https://github.com/your-username/Guardrails.git
+cd Guardrails
+
+# Create .env file
+cat > .env << 'EOF'
+# Backend
+GOOGLE_API_KEY=your-gemini-api-key
+DEBUG=false
+HOST=0.0.0.0
+PORT=8000
+
+# GitHub App
+BACKEND_URL=http://your-ec2-public-ip:8000
+APP_ID=your-github-app-id
+PRIVATE_KEY="your-private-key"
+WEBHOOK_SECRET=your-webhook-secret
+EOF
+```
+
+### 4. Setup Backend Service
+
+```bash
+# Create systemd service for backend
+sudo tee /etc/systemd/system/guardrails-backend.service << 'EOF'
+[Unit]
+Description=Guardrails Backend Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Guardrails/backend
+Environment="PATH=/home/ubuntu/Guardrails/backend/venv/bin"
+ExecStart=/home/ubuntu/Guardrails/backend/venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Setup Python environment
+cd /home/ubuntu/Guardrails/backend
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
-# Set environment variables
-export GOOGLE_API_KEY="your-gemini-api-key"
-export DEBUG="false"
-
-# Run with uvicorn
-python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+# Enable and start backend service
+sudo systemctl daemon-reload
+sudo systemctl enable guardrails-backend
+sudo systemctl start guardrails-backend
+sudo systemctl status guardrails-backend
 ```
 
-### 2. GitHub App
+### 5. Setup GitHub App Service
 
 ```bash
-cd guardrails-github-app
+# Create systemd service for GitHub App
+sudo tee /etc/systemd/system/guardrails-app.service << 'EOF'
+[Unit]
+Description=Guardrails GitHub App
+After=network.target guardrails-backend.service
 
-# Install dependencies
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/Guardrails/guardrails-github-app
+Environment="PATH=/home/ubuntu/Guardrails/guardrails-github-app/node_modules/.bin:/usr/bin:/bin"
+Environment="NODE_ENV=production"
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Setup Node.js environment
+cd /home/ubuntu/Guardrails/guardrails-github-app
 npm install
-
-# Build
 npm run build
 
-# Set environment variables
-export BACKEND_URL="http://localhost:8000"
-export APP_ID="your-github-app-id"
-export PRIVATE_KEY="your-private-key"
-export WEBHOOK_SECRET="your-webhook-secret"
-
-# Run
-npm start
+# Enable and start GitHub App service
+sudo systemctl daemon-reload
+sudo systemctl enable guardrails-app
+sudo systemctl start guardrails-app
+sudo systemctl status guardrails-app
 ```
 
-## Health Checks
-
-### Backend Health Check
+### 6. Setup Reverse Proxy (Nginx)
 
 ```bash
-curl http://localhost:8000/health
-```
+# Install Nginx
+sudo apt install -y nginx
 
-Expected response:
-```json
-{
-  "status": "healthy",
-  "version": "1.0.0",
-  "ai_enabled": true,
-  "timestamp": "2026-01-28T10:00:00"
+# Create Nginx config
+sudo tee /etc/nginx/sites-available/guardrails << 'EOF'
+server {
+    listen 80;
+    server_name your-ec2-public-ip;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location /api/ {
+        proxy_pass http://localhost:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
 }
+EOF
+
+# Enable Nginx config
+sudo ln -s /etc/nginx/sites-available/guardrails /etc/nginx/sites-enabled/guardrails
+sudo rm /etc/nginx/sites-enabled/default
+
+# Test and restart Nginx
+sudo nginx -t
+sudo systemctl restart nginx
 ```
 
-### GitHub App Health Check
+### 7. Verify Deployment
 
 ```bash
-curl http://localhost:3000/
+# Check services status
+sudo systemctl status guardrails-backend
+sudo systemctl status guardrails-app
+sudo systemctl status nginx
+
+# Check logs
+sudo journalctl -u guardrails-backend -f
+sudo journalctl -u guardrails-app -f
+
+# Test endpoints
+curl http://your-ec2-public-ip/health
+curl http://your-ec2-public-ip/
 ```
 
-## Security
+### 8. Configure GitHub App Webhook
 
-- Keep API keys in environment variables (never commit to git)
-- Use strong webhook secrets
-- Enable HTTPS in production
-- Restrict network access to internal services
-- Regularly rotate GitHub App credentials
+1. Go to GitHub App Settings → Webhook URL
+2. Set to: `http://your-ec2-public-ip/webhook` or use your domain
+3. Save
 
-## Troubleshooting
+Then update GitHub App webhook to use this IP.
 
-### Backend won't start
-- Check `GOOGLE_API_KEY` is set correctly
-- Verify port 8000 is not in use
-- Check logs: `docker-compose logs backend`
-
-### GitHub App connection issues
-- Verify `BACKEND_URL` is correct
-- Check GitHub App credentials are valid
-- Ensure backend is running
-
-### AI suggestions not working
-- Verify `GOOGLE_API_KEY` environment variable is set
-- Check Gemini API quota and permissions
-- Enable debug mode: `DEBUG=true`
-
-### Port conflicts
-- Change port in docker-compose.yml or uvicorn command
-- Example: `--port 8001` for alternative port
