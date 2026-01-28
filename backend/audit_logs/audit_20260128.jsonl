@@ -31,3 +31,86 @@
     }
   ]
 }
+{
+  "event_id": "1d9f157a-fbc0-4a01-9b29-31c49e654692",
+  "timestamp": "2026-01-28T03:40:56.867393",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 9,
+  "commit_hash": "969c9f126280e0e35e9c5049f6a41ef6e66c617b",
+  "violation_count": 3,
+  "critical_count": 0,
+  "high_count": 3,
+  "enforcement_action": "warning",
+  "blocked": false,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "393f7094-2786-4655-8d62-72aa3c14a07f",
+  "violations_summary": [
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    }
+  ]
+}
+{
+  "event_id": "4868876f-55ef-409b-967c-8910e7138847",
+  "timestamp": "2026-01-28T03:45:46.893027",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 10,
+  "commit_hash": "944390cb253cb25a21ac53cc184e5b9e8d172747",
+  "violation_count": 3,
+  "critical_count": 0,
+  "high_count": 3,
+  "enforcement_action": "warning",
+  "blocked": false,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "71275e4d-2225-4570-b9c3-bc5b00ec6913",
+  "violations_summary": [
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    },
+    {
+      "rule_id": "SEC-005",
+      "severity": "high",
+      "category": "security"
+    }
+  ]
+}
+{
+  "event_id": "545d1b7e-5740-4798-8915-30b4143e1868",
+  "timestamp": "2026-01-28T03:46:35.236594",
+  "repo_name": "0210-ai/Guardrails",
+  "pr_number": 10,
+  "commit_hash": "20f38efc87ec3d7df08b39551263c973ceb41409",
+  "violation_count": 0,
+  "critical_count": 0,
+  "high_count": 0,
+  "enforcement_action": "warning",
+  "blocked": false,
+  "override_applied": false,
+  "override_reason": null,
+  "pr_url": null,
+  "scan_id": "4539b7a9-fc6a-45ea-a7d3-af33f90c91bd",
+  "violations_summary": []
+}
