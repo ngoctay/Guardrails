@@ -3,6 +3,7 @@
 A system that provides enterprise-grade code guardrails for GitHub Copilot workflows. This solution combines static analysis with GitHub PR integration to enforce security standards, compliance policies, and code quality checks before merge.
 
 Dashboard URL: http://35.175.205.204:3001/dashboard
+
 Backend URL: http://35.175.205.204:8000
 
 ## Architecture
