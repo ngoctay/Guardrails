@@ -240,13 +240,13 @@ sudo systemctl status guardrails-backend
 sudo tee /etc/systemd/system/guardrails-app.service << 'EOF'
 [Unit]
 Description=Guardrails GitHub App
-After=network.target guardrails-backend.service
+After=network.target
 
 [Service]
 User=ubuntu
 WorkingDirectory=/home/ubuntu/Guardrails/guardrails-github-app
-Environment="PATH=/home/ubuntu/Guardrails/guardrails-github-app/node_modules/.bin:/usr/bin:/bin"
-Environment="NODE_ENV=production"
+EnvironmentFile=/home/ubuntu/Guardrails/.env
+Environment=NODE_ENV=production
 ExecStart=/home/ubuntu/.nvm/versions/node/*/bin/node \
   /home/ubuntu/Guardrails/guardrails-github-app/node_modules/.bin/probot \
   run ./lib/index.js
