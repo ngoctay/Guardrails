@@ -67,10 +67,12 @@ GOOGLE_API_KEY=your-gemini-api-key
 DEBUG=false
 
 # GitHub App
-BACKEND_URL=http://backend:8000
-APP_ID=your-github-app-id
-PRIVATE_KEY=your-github-app-private-key
-WEBHOOK_SECRET=your-webhook-secret
+BACKEND_URL=http://localhost:8000
+APP_ID=app-id
+PRIVATE_KEY="your-key"
+WEBHOOK_SECRET=developer
+GITHUB_CLIENT_ID=********************
+GITHUB_CLIENT_SECRET=******
 ```
 
 2. **Start services:**
@@ -123,6 +125,8 @@ services:
       - APP_ID=${APP_ID}
       - PRIVATE_KEY=${PRIVATE_KEY}
       - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
     depends_on:
       - backend
     restart: always
@@ -159,7 +163,10 @@ ssh -i your-key.pem ubuntu@<your-ec2-public-ip>
 
 sudo apt update && sudo apt upgrade -y
 
-sudo apt install -y python3.11 python3.11-venv python3-pip nodejs npm git curl
+sudo apt install -y python3.12 python3.12-venv python3-pip git curl
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm install --lts
 
 python3 --version
 node --version
@@ -183,10 +190,12 @@ HOST=0.0.0.0
 PORT=8000
 
 # GitHub App
-BACKEND_URL=http://your-ec2-public-ip:8000
-APP_ID=your-github-app-id
-PRIVATE_KEY="your-private-key"
-WEBHOOK_SECRET=your-webhook-secret
+BACKEND_URL=http://localhost:8000
+APP_ID=app-id
+PRIVATE_KEY="your-key"
+WEBHOOK_SECRET=developer
+GITHUB_CLIENT_ID=********************
+GITHUB_CLIENT_SECRET=******
 EOF
 ```
 
@@ -238,7 +247,9 @@ User=ubuntu
 WorkingDirectory=/home/ubuntu/Guardrails/guardrails-github-app
 Environment="PATH=/home/ubuntu/Guardrails/guardrails-github-app/node_modules/.bin:/usr/bin:/bin"
 Environment="NODE_ENV=production"
-ExecStart=/usr/bin/npm start
+ExecStart=/home/ubuntu/.nvm/versions/node/*/bin/node \
+  /home/ubuntu/Guardrails/guardrails-github-app/node_modules/.bin/probot \
+  run ./lib/index.js
 Restart=always
 RestartSec=10
 
