@@ -163,7 +163,7 @@ ssh -i your-key.pem ubuntu@<your-ec2-public-ip>
 
 sudo apt update && sudo apt upgrade -y
 
-sudo apt install -y python3.12 python3.12-venv python3-pip git curl
+sudo apt install -y python3 python3-venv python3-pip git curl
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 source ~/.bashrc
 nvm install --lts
